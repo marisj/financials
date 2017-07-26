@@ -1,0 +1,44 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# compiled output
+dist
+tmp
+
+# python binary files
+*.py[cod]
+config.py
+*.py~
+
+# dependencies
+node_modules
+bower_components
+
+# node 
+npm-*.log
+.npmignore
+*.pid
+*.seed
+.grunt
+
+# misc
+.sass-cache
+connect.lock
+coverage/*
+libpeerconnection.log
+testem.log
+*.p
+.gitconfig 
+*.csv
+wget-log*
+*.txt
+*.xls
+*.xlsx
+.DS_Store
+
+# special
+words/*
+anaconda/*
+data/20*
+data/history/*
+!data/history/.gitkeep
+!requirements.txt
