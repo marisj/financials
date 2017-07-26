@@ -25,7 +25,6 @@ import datetime
 from collections import defaultdict
 
 import lxml.html
-from lxml.html.clean import Cleaner
 from lxml import etree
 
 from financials.helper import *
