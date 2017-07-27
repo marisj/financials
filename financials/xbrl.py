@@ -43,6 +43,7 @@ class XBRL(object):
         self.history = None
         self.accession = None
         self.annual = None
+        self.tree = None
 
     def get_index(self, url):
         """Returns list of [form type, description, document] for a filing
@@ -117,7 +118,7 @@ class XBRL(object):
                     f.write('{}\n'.format(line))
 
     def parse(self, cik, name, form, date, filing, return_all=False):
-        """Parses XBRL instance doc into list of dicts. 
+        """Parses XBRL instance doc. Writes data to financials/data/{quarter}.
 
         :param cik: SEC Central Index Key
         :param name: self-reported filer name
@@ -133,6 +134,8 @@ class XBRL(object):
                           ''.join([accession, '-index.htm'])])
         index_links = self.get_index(index)
         xbrl = [x[2] for x in index_links if x[0].endswith('.INS')]
+        if not xbrl:
+            xbrl = [x[2] for x in index_links if x[0] == 'XML'] # inline
         instance = '{}/data/{}/{}/{}'.format(self.edgar, cik, 
                                              accession.replace('-', ''), 
                                              xbrl[0])
@@ -186,37 +189,36 @@ class XBRL(object):
             return data
 
         # general
+        self.tree = tree
         self.context = defs
-        ticker = self.pull(tree, 'TradingSymbol', None, history=False)
+        ticker = self.pull('TradingSymbol', None, history=False)
         if ticker is not None:
             ticker = clean_ticker(ticker)
         if ticker is None:
             ticker = clean_ticker(xbrl[0].split('-')[0])
-        fiscal_year = self.pull(tree, 'DocumentFiscalYearFocus', None,
-                                history=False)
-        fiscal_period = self.pull(tree, 'DocumentFiscalPeriodFocus', None,
-                                  history=False)
+        fiscal_year = self.pull('DocumentFiscalYearFocus', None, history=False)
+        fiscal_period = self.pull('DocumentFiscalPeriodFocus', None, history=False)
         if fiscal_year is not None and fiscal_period is not None:
             focus = '{}{}'.format(fiscal_year, fiscal_period)
         else:
             focus = self.datapath.split('/')[-1]
-        formdate = self.pull(tree, 'DocumentPeriodEndDate', None, history=False)
+        formdate = self.pull('DocumentPeriodEndDate', None, history=False)
 
         # balance sheet
-        bs_assets = self.pull(tree, 'Assets', 'bs.assets')
-        bs_cash = self.pull(tree, 'Cash', 'bs.cash')
+        bs_assets = self.pull('Assets', 'bs.assets')
+        bs_cash = self.pull('Cash', 'bs.cash')
         if bs_cash is None:
-            bs_cash = self.pull(tree, 'CashAndCashEquivalentsAtCarryingValue',
+            bs_cash = self.pull('CashAndCashEquivalentsAtCarryingValue',
                                 'bs.cash')
-        bs_currentassets = self.pull(tree, 'AssetsCurrent', 'bs.currentassets')
-        bs_ppenet = self.pull(tree, 'PropertyPlantAndEquipmentNet', 'bs.ppenet')
-        bs_ppegross = self.pull(tree, 'PropertyPlantAndEquipmentGross', 'bs.ppegross')
-        bs_currentliabilities = self.pull(tree, 'LiabilitiesCurrent', 
+        bs_currentassets = self.pull('AssetsCurrent', 'bs.currentassets')
+        bs_ppenet = self.pull('PropertyPlantAndEquipmentNet', 'bs.ppenet')
+        bs_ppegross = self.pull('PropertyPlantAndEquipmentGross', 'bs.ppegross')
+        bs_currentliabilities = self.pull('LiabilitiesCurrent', 
                                           'bs.currentliabilities')
-        bs_longtermdebt = self.pull(tree, 'LongTermDebt', 'bs.longtermdebt')
+        bs_longtermdebt = self.pull('LongTermDebt', 'bs.longtermdebt')
         if bs_longtermdebt is None:
-            tmp = self.pull(tree, 'LongTermDebtCurrent', None, history=False)
-            tmp2 = self.pull(tree, 'LongTermDebtNoncurrent', None, history=False)
+            tmp = self.pull('LongTermDebtCurrent', None, history=False)
+            tmp2 = self.pull('LongTermDebtNoncurrent', None, history=False)
             if tmp is not None and tmp2 is not None:
                 bs_longtermdebt = int(tmp) + int(tmp2)
             elif tmp is not None:
@@ -229,63 +231,63 @@ class XBRL(object):
                     'PartnersCapitalIncludingPortionAttributableToNoncontrollingInterest',
                     'PartnersCapital', 'MemberEquity', 'AssetsNet']:
             if bs_equity is None:
-                bs_equity = self.pull(tree, key, 'bs.equity')
+                bs_equity = self.pull(key, 'bs.equity')
 
         # income statement
-        is_sales = self.pull(tree, 'SalesRevenueNet', 'is.sales')
+        is_sales = self.pull('SalesRevenueNet', 'is.sales')
         if is_sales is None:
-            is_sales = self.pull(tree, 'Revenues', 'is.sales')
-        is_cogs = self.pull(tree, 'CostOfGoodsAndServicesSold', 'is.cogs')
+            is_sales = self.pull('Revenues', 'is.sales')
+        is_cogs = self.pull('CostOfGoodsAndServicesSold', 'is.cogs')
         if is_cogs is None:
-            is_cogs = self.pull(tree, 'CostOfGoodsSold', 'is.cogs')
-        is_grossprofit = self.pull(tree, 'GrossProfit', 'is.grossprofit')
-        is_research = self.pull(tree, 'ResearchAndDevelopmentExpense', 'is.research')
-        is_sga = self.pull(tree, 'SellingGeneralAndAdministrativeExpense', 'is.sga')
-        is_opexpenses = self.pull(tree, 'OperatingCostsAndExpenses', 'is.opexpenses')
+            is_cogs = self.pull('CostOfGoodsSold', 'is.cogs')
+        is_grossprofit = self.pull('GrossProfit', 'is.grossprofit')
+        is_research = self.pull('ResearchAndDevelopmentExpense', 'is.research')
+        is_sga = self.pull('SellingGeneralAndAdministrativeExpense', 'is.sga')
+        is_opexpenses = self.pull('OperatingCostsAndExpenses', 'is.opexpenses')
         if is_opexpenses is None:
-            is_opexpenses = self.pull(tree, 'OperatingExpenses', 'is.opexpenses')
+            is_opexpenses = self.pull('OperatingExpenses', 'is.opexpenses')
         is_ebitda = None
         if is_grossprofit and is_opexpenses:
-            tmp = self.pull(tree, 'DepreciationAndAmortization', None, history=False)
+            tmp = self.pull('DepreciationAndAmortization', None, history=False)
             if tmp is not None:
                 is_ebitda = int(is_grossprofit) - int(is_opexpenses) + int(tmp)
-        is_incometax = self.pull(tree, 'IncomeTaxesPaid', 'is.incometax')
+        is_incometax = self.pull('IncomeTaxesPaid', 'is.incometax')
         if is_incometax is None:
-            is_incometax = self.pull(tree, 'IncomeTaxesPaidNet', 'is.incometax')
+            is_incometax = self.pull('IncomeTaxesPaidNet', 'is.incometax')
         is_netincome = None
         for key in ['NetIncomeLoss', 'ProfitLoss', 'NetIncomeLossAvailableToCommonStockholdersBasic']:
             if is_netincome is None:
-                is_netincome = self.pull(tree, key, 'is.netincome')
-        is_opincome = self.pull(tree, 'IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest',
+                is_netincome = self.pull(key, 'is.netincome')
+        is_opincome = self.pull('IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest',
                                 'is.opincome')
 
         # cash flow
-        cf_operating = self.pull(tree, 'NetCashProvidedByUsedInOperatingActivities',
+        cf_operating = self.pull('NetCashProvidedByUsedInOperatingActivities',
                                  'cf.operating')
         if cf_operating is None:
-            cf_operating = self.pull(tree, 'NetCashProvidedByUsedInOperatingActivitiesContinuingOperations',
+            cf_operating = self.pull('NetCashProvidedByUsedInOperatingActivitiesContinuingOperations',
                                      'cf.operating')
-        cf_depreciation = self.pull(tree, 'Depreciation', 'cf.depreciation')
-        cf_investing = self.pull(tree, 'NetCashProvidedByUsedInInvestingActivities',
+        cf_depreciation = self.pull('Depreciation', 'cf.depreciation')
+        cf_investing = self.pull('NetCashProvidedByUsedInInvestingActivities',
                                  'cf.investing')
         if cf_investing is None:
-            cf_investing = self.pull(tree, 'NetCashProvidedByUsedInInvestingActivitiesContinuingOperations',
+            cf_investing = self.pull('NetCashProvidedByUsedInInvestingActivitiesContinuingOperations',
                                      'cf.investing')
-        cf_ppe = self.pull(tree, 'PaymentsToAcquirePropertyPlantAndEquipment',
+        cf_ppe = self.pull('PaymentsToAcquirePropertyPlantAndEquipment',
                            'cf.ppe')
-        cf_financing = self.pull(tree, 'NetCashProvidedByUsedInFinancingActivities',
+        cf_financing = self.pull('NetCashProvidedByUsedInFinancingActivities',
                                  'cf.financing')
         if cf_financing is None:
-            cf_financing = self.pull(tree, 'NetCashProvidedByUsedInFinancingActivitiesContinuingOperations',
+            cf_financing = self.pull('NetCashProvidedByUsedInFinancingActivitiesContinuingOperations',
                                      'cf.financing')
-        cf_dividends = self.pull(tree, 'PaymentsOfDividends', 'cf.dividends')
+        cf_dividends = self.pull('PaymentsOfDividends', 'cf.dividends')
         cf_cashchange = None
         if cf_operating and cf_investing and cf_financing:
             cf_cashchange = int(cf_operating) + int(cf_investing) + int(cf_financing)
-            exchange = self.pull(tree, 'EffectOfExchangeRateOnCashAndCashEquivalents',
+            exchange = self.pull('EffectOfExchangeRateOnCashAndCashEquivalents',
                                  None, history=False)
             if exchange is None:
-                exchange = self.pull(tree, 'EffectOfExchangeRateOnCashAndCashEquivalentsContinuingOperations',
+                exchange = self.pull('EffectOfExchangeRateOnCashAndCashEquivalentsContinuingOperations',
                                      None, history=False)
             if exchange is not None:
                 cf_cashchange -= int(exchange)
@@ -304,16 +306,15 @@ class XBRL(object):
                 cf_operating, cf_depreciation, cf_investing,
                 cf_ppe, cf_financing, cf_dividends, cf_cashchange])))
 
-    def pull(self, tree, element, field, history=True):
-        """Returns most recent value or list of relevant dicts.
+    def pull(self, element, field, history=True):
+        """Returns most recent, period-appropriate value.
         Writes historical data to financials/data/history/{quarter}.
 
-        :param tree: ElementTree
         :param element: XBRL element to look for
         :param field: standardized element name
         :param history: True to write historical periods to file
         """
-        data = tree.xpath("//*[local-name()='{}']".format(element))
+        data = self.tree.xpath("//*[local-name()='{}']".format(element))
         if not data:
             return None
 
