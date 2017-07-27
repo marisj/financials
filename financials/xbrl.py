@@ -110,7 +110,6 @@ class XBRL(object):
             try:
                 (cik, name, form, date, filing) = \
                     [x.strip() for x in line.strip().split('|')]
-                #name = name.replace(',', '')
                 if form in self.forms:
                     self.parse(cik, name, form, date, filing)
             except ValueError:
@@ -162,7 +161,8 @@ class XBRL(object):
                                 'identifier' not in str(xx.tag):
                         key = etree.QName(xx.tag).localname.strip()
                         try:
-                            val = datetime.datetime.strptime(xx.text.strip(), 
+                            possible_dt = xx.text.strip()[:10]
+                            val = datetime.datetime.strptime(possible_dt, 
                                                              '%Y-%m-%d').date()
                         except ValueError:
                             val = xx.text.split(':')[-1].strip()
@@ -324,6 +324,9 @@ class XBRL(object):
                 continue
             val = x.text.split(':')[-1].strip()
             if val is not None:
+                context = self.context[x.attrib.get('contextRef')]
+                if 'explicitMember' in context:
+                    continue
                 y.append(dict(self.context[x.attrib.get('contextRef')].items() +
                               {'tag': element, 'val': val}.items()))
         if not y:
