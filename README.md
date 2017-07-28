@@ -1,5 +1,7 @@
 
 ## Financials
+This code parses EDGAR for XBRL financial statement data, and writes the 
+following items to financials/data/[quarter]:
 
 | Field | Description |
 | :--- | :--- |
@@ -39,6 +41,17 @@
 | cf.dividends | Payments of dividends |
 | cf.cashchange | Change in cash and cash equivalents |
 
+
+## Usage
+```
+from financials.xbrl import XBRL
+
+XBRL().add_quarter('2009/QTR1')
+```
+or
+```
+bash pull_quarter.sh 2009/QTR1
+```
 
 ## Dependencies
 lxml

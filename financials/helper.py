@@ -88,11 +88,5 @@ def format_zip(field):
     return None
  
 
-def quarter_from_month(month):
-    """Returns integer for quarter.
-
-    :param month: integer
-    """
-    return 1 + (month - 1) // 3
 
 

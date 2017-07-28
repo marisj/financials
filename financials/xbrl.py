@@ -92,17 +92,16 @@ class XBRL(object):
                 f.write('{}\n'.format('|'.join([
                     'accession', 'field', 'element', 'date', 'value'])))
 
-    def update_quarter(self, qtr):
+    def add_quarter(self, qtr):
         """Pulls XBRL financial statement links from quarterly EDGAR index.
+
+        Usage:
+
+        >>> XBRL().add_quarter('2009/QTR1')
 
         :param qtr: 'YYYY/QTR2'
         """
-        if qtr is None:
-            today = datetime.datetime.now()
-            qtr = '{}/QTR{}'.format(today.year, 
-                                    quarter_from_month(today.month))
         self.recreate_files(qtr)
-
         c = urllib2.urlopen('{}/full-index/{}/xbrl.idx'.format(self.edgar, qtr))
         lines = c.read().split('\n')
         c.close()
@@ -291,10 +290,11 @@ class XBRL(object):
                                      'cf.operating')
 
         cf_depreciation = None
-        for key in ['Depreciation', 'DepreciationNonproduction', 'DepreciationAndAmortization']:
+        for key in ['DepreciationAmortizationAndAccretionNet', 'Depreciation', 
+                    'DepreciationNonproduction', 'DepreciationAndAmortization']:
             if cf_depreciation is None:
                 cf_depreciation = self.pull(key, 'cf.depreciation')
-                
+
         cf_investing = self.pull('NetCashProvidedByUsedInInvestingActivities',
                                  'cf.investing')
         if cf_investing is None:
