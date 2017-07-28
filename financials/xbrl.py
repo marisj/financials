@@ -135,6 +135,10 @@ class XBRL(object):
         xbrl = [x[2] for x in index_links if x[0].endswith('.INS')]
         if not xbrl:
             xbrl = [x[2] for x in index_links if x[0] == 'XML'] # inline
+        if not xbrl:
+            with open(os.path.join(os.path.realpath('.'), 'missing.txt'), 'a') as f:
+                f.write('{}\n'.format(index))
+            return  
         instance = '{}/data/{}/{}/{}'.format(self.edgar, cik, 
                                              accession.replace('-', ''), 
                                              xbrl[0])
@@ -237,12 +241,27 @@ class XBRL(object):
         is_sales = self.pull('SalesRevenueNet', 'is.sales')
         if is_sales is None:
             is_sales = self.pull('Revenues', 'is.sales')
-        is_cogs = self.pull('CostOfGoodsAndServicesSold', 'is.cogs')
-        if is_cogs is None:
-            is_cogs = self.pull('CostOfGoodsSold', 'is.cogs')
+
+        is_cogs = None
+        for key in ['CostOfGoodsAndServicesSold', 'CostOfGoodsSold', 'CostOfRevenue']:
+            if is_cogs is None:
+                is_cogs = self.pull(key, 'is.cogs')
+
         is_grossprofit = self.pull('GrossProfit', 'is.grossprofit')
         is_research = self.pull('ResearchAndDevelopmentExpense', 'is.research')
+        if is_research is None:
+            is_research = self.pull('ResearchAndDevelopmentExpenseExcludingAcquiredInProcessCost',
+                                    'is.research')
+
         is_sga = self.pull('SellingGeneralAndAdministrativeExpense', 'is.sga')
+        if is_sga is None:
+            is_sga = self.pull('GeneralAndAdministrativeExpense', None, history=False)
+            tmp = self.pull('SellingAndMarketingExpense', None, history=False)
+            if is_sga is None:
+                is_sga = tmp
+            elif tmp is not None:
+                is_sga = int(is_sga) + int(tmp)
+
         is_opexpenses = self.pull('OperatingCostsAndExpenses', 'is.opexpenses')
         if is_opexpenses is None:
             is_opexpenses = self.pull('OperatingExpenses', 'is.opexpenses')
@@ -251,15 +270,18 @@ class XBRL(object):
             tmp = self.pull('DepreciationAndAmortization', None, history=False)
             if tmp is not None:
                 is_ebitda = int(is_grossprofit) - int(is_opexpenses) + int(tmp)
-        is_incometax = self.pull('IncomeTaxesPaid', 'is.incometax')
-        if is_incometax is None:
-            is_incometax = self.pull('IncomeTaxesPaidNet', 'is.incometax')
+
+        # think IncomeTaxesPaid/IncomeTaxesPaidNet are cash flow
+        is_incometax = self.pull('IncomeTaxExpenseBenefit', 'is.incometax')
         is_netincome = None
         for key in ['NetIncomeLoss', 'ProfitLoss', 'NetIncomeLossAvailableToCommonStockholdersBasic']:
             if is_netincome is None:
                 is_netincome = self.pull(key, 'is.netincome')
-        is_opincome = self.pull('IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest',
-                                'is.opincome')
+
+        is_opincome = self.pull('OperatingIncomeLoss', 'is.opincome')
+        if is_opincome is None:
+            is_opincome = self.pull('IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest',
+                                    'is.opincome')
 
         # cash flow
         cf_operating = self.pull('NetCashProvidedByUsedInOperatingActivities',
@@ -267,7 +289,12 @@ class XBRL(object):
         if cf_operating is None:
             cf_operating = self.pull('NetCashProvidedByUsedInOperatingActivitiesContinuingOperations',
                                      'cf.operating')
-        cf_depreciation = self.pull('Depreciation', 'cf.depreciation')
+
+        cf_depreciation = None
+        for key in ['Depreciation', 'DepreciationNonproduction', 'DepreciationAndAmortization']:
+            if cf_depreciation is None:
+                cf_depreciation = self.pull(key, 'cf.depreciation')
+                
         cf_investing = self.pull('NetCashProvidedByUsedInInvestingActivities',
                                  'cf.investing')
         if cf_investing is None:
@@ -275,6 +302,9 @@ class XBRL(object):
                                      'cf.investing')
         cf_ppe = self.pull('PaymentsToAcquirePropertyPlantAndEquipment',
                            'cf.ppe')
+        if cf_ppe is None:
+            cf_ppe = self.pull('AdditionsToPropertyPlantEquipmentAndSoftwareCapitalization',
+                               'cf.ppe')
         cf_financing = self.pull('NetCashProvidedByUsedInFinancingActivities',
                                  'cf.financing')
         if cf_financing is None:
