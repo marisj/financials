@@ -264,6 +264,9 @@ class XBRL(object):
         is_opexpenses = self.pull('OperatingCostsAndExpenses', 'is.opexpenses')
         if is_opexpenses is None:
             is_opexpenses = self.pull('OperatingExpenses', 'is.opexpenses')
+        if is_opexpenses is None:
+            is_opexpenses = self.pull('CostsAndExpenses', 'is.opexpenses')
+
         is_ebitda = None
         if is_grossprofit and is_opexpenses:
             tmp = self.pull('DepreciationAndAmortization', None, history=False)
