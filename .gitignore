@@ -38,7 +38,7 @@ wget-log*
 # special
 words/*
 anaconda/*
-#data/20*
-#data/history/*
+data/20*
+data/history/*
 !data/history/.gitkeep
 !requirements.txt
