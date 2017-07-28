@@ -311,6 +311,8 @@ class XBRL(object):
             cf_financing = self.pull('NetCashProvidedByUsedInFinancingActivitiesContinuingOperations',
                                      'cf.financing')
         cf_dividends = self.pull('PaymentsOfDividends', 'cf.dividends')
+        if cf_dividends is None:
+            cf_dividends = self.pull('PaymentsOfDividendsCommonStock', 'cf.dividends')
         cf_cashchange = None
         if cf_operating and cf_investing and cf_financing:
             cf_cashchange = int(cf_operating) + int(cf_investing) + int(cf_financing)

@@ -6,7 +6,7 @@
 #        USAGE:  pull_quarter.sh 2009/QTR1
 #
 #  DESCRIPTION:  Parses quarterly EDGAR index for XBRL financial statements.
-#                Saves data to finanicals/data/.
+#                Saves data to financials/data/.
 #                Saves previous periods to financials/data/history/.         
 #    
 #      OPTIONS:  ---
