@@ -71,8 +71,8 @@ class XBRL(object):
             pass
         finally:
             with open(self.datapath, 'a') as f:
-                f.write('{}\n'.format('|'.join(['lei',
-                    'focus', 'ticker', 'cik', 'zip', 'form', 'formdate',
+                f.write('{}\n'.format('|'.join([
+                    'lei', 'focus', 'ticker', 'cik', 'zip', 'form', 'formdate',
                     'filedate', 'acceptance', 'accession', 'name',
                     'bs.assets', 'bs.cash', 'bs.currentassets', 'bs.ppenet', 
                     'bs.ppegross', 'bs.currentliabilities', 'bs.longtermdebt', 
@@ -236,8 +236,18 @@ class XBRL(object):
             elif tmp2 is not None:
                 bs_longtermdebt = tmp2
         if bs_longtermdebt is None:
-            bs_longtermdebt = self.pull('LongtermDebtNetAlternative', None, 
-                                        history=False)  # deprecated
+            tmp = self.pull('DebtInstrumentCarryingAmount', None, history=False)
+            tmp2 = self.pull('DebtInstrumentUnamortizedDiscountPremiumNetAbstract',
+                             None, history=False)
+            if tmp is not None and tmp2 is not None:
+                bs_longtermdebt = int(tmp) + int(tmp2)
+            elif tmp is not None:
+                bs_longtermdebt = tmp 
+            elif tmp2 is not None:
+                bs_longtermdebt = tmp2
+            for key in ['LongtermDebtNetAlternative']:
+                if bs_longtermdebt is None:
+                    bs_longtermdebt = self.pull(key, None, history=False)
 
         bs_equity = None
         for key in ['CommonStockholdersEquity', 'StockholdersEquity',
@@ -255,7 +265,7 @@ class XBRL(object):
 
         is_cogs = None
         for key in ['CostOfGoodsAndServicesSold', 'CostOfGoodsSold', 
-                    'CostOfRevenue']:
+                    'CostOfServices', 'CostOfRevenue']:
             if is_cogs is None:
                 is_cogs = self.pull(key, 'is.cogs')
 
@@ -284,9 +294,10 @@ class XBRL(object):
 
         is_ebitda = None
         if is_grossprofit and is_opexpenses:
+            is_ebitda = int(is_grossprofit) - int(is_opexpenses)
             tmp = self.pull('DepreciationAndAmortization', None, history=False)
             if tmp is not None:
-                is_ebitda = int(is_grossprofit) - int(is_opexpenses) + int(tmp)
+                is_ebitda += int(tmp)
 
         # think IncomeTaxesPaid/IncomeTaxesPaidNet are cash flow
         is_incometax = self.pull('IncomeTaxExpenseBenefit', 'is.incometax')
@@ -355,7 +366,7 @@ class XBRL(object):
         with open(self.datapath, 'a') as f:
             f.write('{}\n'.format('|'.join(
                 str(x) if x is not None else '' for x in [
-                focus, ticker, cik, zipcode, form, formdate,
+                lei, focus, ticker, cik, zipcode, form, formdate,
                 date, acceptance, accession, name,
                 bs_assets, bs_cash, bs_currentassets, bs_ppenet, 
                 bs_ppegross, bs_currentliabilities, bs_longtermdebt,
