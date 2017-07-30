@@ -72,7 +72,7 @@ class XBRL(object):
         finally:
             with open(self.datapath, 'a') as f:
                 f.write('{}\n'.format('|'.join([
-                    'lei', 'focus', 'ticker', 'cik', 'zip', 'form', 'formdate',
+                    'focus', 'ticker', 'cik', 'zip', 'form', 'formdate',
                     'filedate', 'acceptance', 'accession', 'name',
                     'bs.assets', 'bs.cash', 'bs.currentassets', 'bs.ppenet', 
                     'bs.ppegross', 'bs.currentliabilities', 'bs.longtermdebt', 
@@ -194,7 +194,6 @@ class XBRL(object):
         # general
         self.tree = tree
         self.context = defs
-        lei = self.pull('LegalEntityIdentifier', None, history=False)
         ticker = self.pull('TradingSymbol', None, history=False)
         if ticker is not None:
             ticker = clean_ticker(ticker)
@@ -245,7 +244,8 @@ class XBRL(object):
                 bs_longtermdebt = tmp 
             elif tmp2 is not None:
                 bs_longtermdebt = tmp2
-            for key in ['LongtermDebtNetAlternative']:
+            for key in ['LongtermDebtNetAlternative', 'LongTermLoansFromBank',
+                        'LongTermDebtAndCapitalLeaseObligations']:
                 if bs_longtermdebt is None:
                     bs_longtermdebt = self.pull(key, None, history=False)
 
@@ -303,7 +303,7 @@ class XBRL(object):
         is_incometax = self.pull('IncomeTaxExpenseBenefit', 'is.incometax')
 
         is_netincome = None
-        for key in ['NetIncomeLoss', 'ProfitLoss', 
+        for key in ['ProfitLoss', 'NetIncomeLoss',
                     'NetIncomeLossAvailableToCommonStockholdersBasic']:
             if is_netincome is None:
                 is_netincome = self.pull(key, 'is.netincome')
@@ -322,8 +322,9 @@ class XBRL(object):
                 cf_operating = self.pull(key, 'cf.operating')
 
         cf_depreciation = None
-        for key in ['DepreciationAmortizationAndAccretionNet', 'Depreciation', 
-                    'DepreciationNonproduction', 'DepreciationAndAmortization']:
+        for key in ['Depreciation', 'DepreciationNonproduction',
+                    'DepreciationAndAmortization',
+                    'DepreciationAmortizationAndAccretionNet']:
             if cf_depreciation is None:
                 cf_depreciation = self.pull(key, 'cf.depreciation')
 
@@ -346,12 +347,15 @@ class XBRL(object):
                 cf_financing = self.pull(key, 'cf.financing')
 
         cf_dividends = None
-        for key in ['PaymentsOfDividends', 'PaymentsOfDividendsCommonStock']:
+        for key in ['PaymentsOfDividends', 'PaymentsOfDividendsCommonStock',
+                    'PaymentsOfDividendsMinorityInterest',
+                    'PaymentsOfDividendsPreferredStockAndPreferenceStock']:
             if cf_dividends is None:
                 cf_dividends = self.pull(key, 'cf.dividends')
 
-        cf_cashchange = None
-        if cf_operating or cf_investing or cf_financing:
+        cf_cashchange = self.pull('CashAndCashEquivalentsPeriodIncreaseDecrease',
+                                  'cf.cashchange')
+        if cf_cashchange is None and (cf_operating or cf_investing or cf_financing):
             cf_cashchange = sum([int(x) for x in [
                                  cf_operating, cf_investing, cf_financing] if x])
             exchange = None
@@ -366,7 +370,7 @@ class XBRL(object):
         with open(self.datapath, 'a') as f:
             f.write('{}\n'.format('|'.join(
                 str(x) if x is not None else '' for x in [
-                lei, focus, ticker, cik, zipcode, form, formdate,
+                focus, ticker, cik, zipcode, form, formdate,
                 date, acceptance, accession, name,
                 bs_assets, bs_cash, bs_currentassets, bs_ppenet, 
                 bs_ppegross, bs_currentliabilities, bs_longtermdebt,
