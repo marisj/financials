@@ -20,7 +20,6 @@
     license: BSD, see LICENSE for more details.
 """
 import os
-import urllib2
 import datetime
 from collections import defaultdict
 
@@ -51,7 +50,7 @@ class XBRL(object):
 
         :param url: filing index URL
         """
-        c = urllib2.urlopen(url)
+        c = openurl(url)
         tree = lxml.html.parse(c)
         c.close()
         elem = tree.getroot().xpath('//table[@class="tableFile"]/tr')
@@ -102,7 +101,7 @@ class XBRL(object):
         :param qtr: 'YYYY/QTR2'
         """
         self.recreate_files(qtr)
-        c = urllib2.urlopen('{}/full-index/{}/xbrl.idx'.format(self.edgar, qtr))
+        c = openurl('{}/full-index/{}/xbrl.idx'.format(self.edgar, qtr))
         lines = c.read().split('\n')
         c.close()
         for line in lines[10:]:
@@ -142,14 +141,14 @@ class XBRL(object):
                                              accession.replace('-', ''), 
                                              xbrl[0])
         try:
-            tree = etree.parse(urllib2.urlopen(instance))
+            tree = etree.parse(openurl(instance))
         except etree.XMLSyntaxError:
-            tree = etree.parse(urllib2.urlopen(instance),
+            tree = etree.parse(openurl(instance),
                                parser=etree.XMLParser(recover=True))
 
         # pull acceptance datetime and zip
         sgml = index.replace('-index.htm', '.hdr.sgml')
-        c = urllib2.urlopen(sgml)
+        c = openurl(sgml)
         lines = c.read()
         c.close()
         acceptance = lines.split('<ACCEPTANCE-DATETIME>')[-1].split('<')[0].strip()
