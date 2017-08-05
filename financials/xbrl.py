@@ -422,6 +422,7 @@ class XBRL(object):
             return y[0]['val']
 
         # return 3-months data for quarterly, 12-months for annual
+        y = [x for x in y if 'endDate' in x and 'startDate' in x]
         for x in y:
             x['diff'] = (x['endDate'] - x['startDate']).days*-1
         if self.annual:
