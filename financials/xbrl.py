@@ -434,6 +434,8 @@ class XBRL(object):
         # weird time periods
         if not z:
             z = sorted(y, key=lambda x: (x['endDate'], x['diff']), reverse=True)
+        if not z:
+            return None
 
         if history:
             with open(self.history, 'a') as f:
