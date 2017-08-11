@@ -43,3 +43,4 @@ data/history/*
 !data/history/.gitkeep
 !requirements.txt
 build_annual.sh
+skip/*

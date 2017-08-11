@@ -73,13 +73,13 @@ class XBRL(object):
                 f.write('{}\n'.format('|'.join([
                     'focus', 'ticker', 'cik', 'zip', 'form', 'formdate',
                     'filedate', 'acceptance', 'accession', 'name',
-                    'bs.assets', 'bs.cash', 'bs.currentassets', 'bs.ppenet', 
-                    'bs.ppegross', 'bs.currentliabilities', 'bs.longtermdebt', 
-                    'bs.equity', 'is.sales', 'is.cogs', 'is.grossprofit', 
-                    'is.research', 'is.sga', 'is.opexpenses', 'is.ebitda', 
-                    'is.incometax', 'is.netincome', 'is.opincome', 
-                    'cf.operating', 'cf.depreciation', 'cf.investing',
-                    'cf.ppe', 'cf.financing', 'cf.dividends', 'cf.cashchange'])))
+                    'bs_assets', 'bs_cash', 'bs_currentassets', 'bs_ppenet', 
+                    'bs_ppegross', 'bs_currentliabilities', 'bs_longtermdebt', 
+                    'bs_equity', 'is_sales', 'is_cogs', 'is_grossprofit', 
+                    'is_research', 'is_sga', 'is_opexpenses', 'is_ebitda', 
+                    'is_incometax', 'is_netincome', 'is_opincome', 
+                    'cf_operating', 'cf_depreciation', 'cf_investing',
+                    'cf_ppe', 'cf_financing', 'cf_dividends', 'cf_cashchange'])))
 
         self.history = '{}/history/{}'.format(self.filepath, q)
         try:
@@ -207,23 +207,23 @@ class XBRL(object):
         formdate = self.pull('DocumentPeriodEndDate', None, history=False)
 
         # balance sheet
-        bs_assets = self.pull('Assets', 'bs.assets')
+        bs_assets = self.pull('Assets', 'bs_assets')
 
         bs_cash = None 
         for key in ['Cash', 'CashAndCashEquivalentsAtCarryingValue']:
             if bs_cash is None:
-                bs_cash = self.pull(key, 'bs.cash')
+                bs_cash = self.pull(key, 'bs_cash')
 
-        bs_currentassets = self.pull('AssetsCurrent', 'bs.currentassets')
+        bs_currentassets = self.pull('AssetsCurrent', 'bs_currentassets')
 
-        bs_ppenet = self.pull('PropertyPlantAndEquipmentNet', 'bs.ppenet')
+        bs_ppenet = self.pull('PropertyPlantAndEquipmentNet', 'bs_ppenet')
         
-        bs_ppegross = self.pull('PropertyPlantAndEquipmentGross', 'bs.ppegross')
+        bs_ppegross = self.pull('PropertyPlantAndEquipmentGross', 'bs_ppegross')
         
         bs_currentliabilities = self.pull('LiabilitiesCurrent', 
-                                          'bs.currentliabilities')
+                                          'bs_currentliabilities')
 
-        bs_longtermdebt = self.pull('LongTermDebt', 'bs.longtermdebt')
+        bs_longtermdebt = self.pull('LongTermDebt', 'bs_longtermdebt')
         if bs_longtermdebt is None:
             tmp = self.pull('LongTermDebtCurrent', None, history=False)
             tmp2 = self.pull('LongTermDebtNoncurrent', None, history=False)
@@ -254,29 +254,29 @@ class XBRL(object):
                     'PartnersCapitalIncludingPortionAttributableToNoncontrollingInterest',
                     'PartnersCapital', 'MemberEquity', 'AssetsNet']:
             if bs_equity is None:
-                bs_equity = self.pull(key, 'bs.equity')
+                bs_equity = self.pull(key, 'bs_equity')
 
         # income statement
         is_sales = None
         for key in ['SalesRevenueNet', 'Revenues']:
             if is_sales is None:
-                is_sales = self.pull(key, 'is.sales')
+                is_sales = self.pull(key, 'is_sales')
 
         is_cogs = None
         for key in ['CostOfGoodsAndServicesSold', 'CostOfGoodsSold', 
                     'CostOfServices', 'CostOfRevenue']:
             if is_cogs is None:
-                is_cogs = self.pull(key, 'is.cogs')
+                is_cogs = self.pull(key, 'is_cogs')
 
-        is_grossprofit = self.pull('GrossProfit', 'is.grossprofit')
+        is_grossprofit = self.pull('GrossProfit', 'is_grossprofit')
 
         is_research = None
         for key in ['ResearchAndDevelopmentExpense',
                     'ResearchAndDevelopmentExpenseExcludingAcquiredInProcessCost']:
             if is_research is None:
-                is_research = self.pull(key, 'is.research')
+                is_research = self.pull(key, 'is_research')
 
-        is_sga = self.pull('SellingGeneralAndAdministrativeExpense', 'is.sga')
+        is_sga = self.pull('SellingGeneralAndAdministrativeExpense', 'is_sga')
         if is_sga is None:
             is_sga = self.pull('GeneralAndAdministrativeExpense', None, history=False)
             tmp = self.pull('SellingAndMarketingExpense', None, history=False)
@@ -289,7 +289,7 @@ class XBRL(object):
         for key in ['OperatingCostsAndExpenses', 'OperatingExpenses', 
                     'CostsAndExpenses']:
             if is_opexpenses is None:
-                is_opexpenses = self.pull(key, 'is.opexpenses')
+                is_opexpenses = self.pull(key, 'is_opexpenses')
 
         is_ebitda = None
         if is_grossprofit and is_opexpenses:
@@ -299,61 +299,61 @@ class XBRL(object):
                 is_ebitda += int(tmp)
 
         # think IncomeTaxesPaid/IncomeTaxesPaidNet are cash flow
-        is_incometax = self.pull('IncomeTaxExpenseBenefit', 'is.incometax')
+        is_incometax = self.pull('IncomeTaxExpenseBenefit', 'is_incometax')
 
         is_netincome = None
         for key in ['ProfitLoss', 'NetIncomeLoss',
                     'NetIncomeLossAvailableToCommonStockholdersBasic']:
             if is_netincome is None:
-                is_netincome = self.pull(key, 'is.netincome')
+                is_netincome = self.pull(key, 'is_netincome')
 
         is_opincome = None
         for key in ['OperatingIncomeLoss', 
                     'IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest']:
             if is_opincome is None:
-                is_opincome = self.pull(key, 'is.opincome')
+                is_opincome = self.pull(key, 'is_opincome')
 
         # cash flow
         cf_operating = None
         for key in ['NetCashProvidedByUsedInOperatingActivities', 
                     'NetCashProvidedByUsedInOperatingActivitiesContinuingOperations']:
             if cf_operating is None:
-                cf_operating = self.pull(key, 'cf.operating')
+                cf_operating = self.pull(key, 'cf_operating')
 
         cf_depreciation = None
         for key in ['Depreciation', 'DepreciationNonproduction',
                     'DepreciationAndAmortization',
                     'DepreciationAmortizationAndAccretionNet']:
             if cf_depreciation is None:
-                cf_depreciation = self.pull(key, 'cf.depreciation')
+                cf_depreciation = self.pull(key, 'cf_depreciation')
 
         cf_investing = None
         for key in ['NetCashProvidedByUsedInInvestingActivities', 
                     'NetCashProvidedByUsedInInvestingActivitiesContinuingOperations']:
             if cf_investing is None:
-                cf_investing = self.pull(key, 'cf.investing')
+                cf_investing = self.pull(key, 'cf_investing')
 
         cf_ppe = None
         for key in ['PaymentsToAcquirePropertyPlantAndEquipment', 
                     'AdditionsToPropertyPlantEquipmentAndSoftwareCapitalization']:
             if cf_ppe is None:
-                cf_ppe = self.pull(key, 'cf.ppe')
+                cf_ppe = self.pull(key, 'cf_ppe')
 
         cf_financing = None
         for key in ['NetCashProvidedByUsedInFinancingActivities',
                     'NetCashProvidedByUsedInFinancingActivitiesContinuingOperations']:
             if cf_financing is None:
-                cf_financing = self.pull(key, 'cf.financing')
+                cf_financing = self.pull(key, 'cf_financing')
 
         cf_dividends = None
         for key in ['PaymentsOfDividends', 'PaymentsOfDividendsCommonStock',
                     'PaymentsOfDividendsMinorityInterest',
                     'PaymentsOfDividendsPreferredStockAndPreferenceStock']:
             if cf_dividends is None:
-                cf_dividends = self.pull(key, 'cf.dividends')
+                cf_dividends = self.pull(key, 'cf_dividends')
 
         cf_cashchange = self.pull('CashAndCashEquivalentsPeriodIncreaseDecrease',
-                                  'cf.cashchange')
+                                  'cf_cashchange')
         if cf_cashchange is None and (cf_operating or cf_investing or cf_financing):
             cf_cashchange = sum([int(x) for x in [
                                  cf_operating, cf_investing, cf_financing] if x])

@@ -15,31 +15,31 @@ following items to financials/data/[quarter]:
 | acceptance | Acceptance datetime (when the filing was made public) |
 | accession | SEC accession number |
 | name | Company name |
-| bs.assets | Assets |
-| bs.cash | Cash |
-| bs.currentassets | Current assets |
-| bs.ppenet | Net property, plant and equipment |
-| bs.ppegross | Gross property, plant and equipment |
-| bs.currentliabilities | Current liabilities |
-| bs.longtermdebt | Long term debt |
-| bs.equity | Equity |
-| is.sales | Sales (revenue) |
-| is.cogs | Cost of goods sold |
-| is.grossprofit | Gross profit |
-| is.research | Research and development expense |
-| is.sga | Sales, general and administrative expenses |
-| is.opexpenses | Operating expenses |
-| is.ebitda | EBITDA |
-| is.incometax | Income taxes paid |
-| is.netincome | Net income |
-| is.opincome | Operating income |
-| cf.operating | Net cash provided by/used in operating activities |
-| cf.depreciation | Depreciation |
-| cf.investing | Net cash provided by/used in investing activities |
-| cf.ppe | Payments to acquire property, plant and equipment |
-| cf.financing | Net cash provided by/used in financing activities |
-| cf.dividends | Payments of dividends |
-| cf.cashchange | Change in cash and cash equivalents |
+| bs_assets | Assets |
+| bs_cash | Cash |
+| bs_currentassets | Current assets |
+| bs_ppenet | Net property, plant and equipment |
+| bs_ppegross | Gross property, plant and equipment |
+| bs_currentliabilities | Current liabilities |
+| bs_longtermdebt | Long term debt |
+| bs_equity | Equity |
+| is_sales | Sales (revenue) |
+| is_cogs | Cost of goods sold |
+| is_grossprofit | Gross profit |
+| is_research | Research and development expense |
+| is_sga | Sales, general and administrative expenses |
+| is_opexpenses | Operating expenses |
+| is_ebitda | EBITDA |
+| is_incometax | Income taxes paid |
+| is_netincome | Net income |
+| is_opincome | Operating income |
+| cf_operating | Net cash provided by/used in operating activities |
+| cf_depreciation | Depreciation |
+| cf_investing | Net cash provided by/used in investing activities |
+| cf_ppe | Payments to acquire property, plant and equipment |
+| cf_financing | Net cash provided by/used in financing activities |
+| cf_dividends | Payments of dividends |
+| cf_cashchange | Change in cash and cash equivalents |
 
 
 ## Usage
