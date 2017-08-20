@@ -14,7 +14,7 @@
         ebitda, income tax, net income, operating income
 
     Cash flow statement:
-        operating, depreciation, investing, ppe, financing,
+        operating, depreciation, investing, financing,
         dividends, change in cash/cash equivalents
 
     copyright: (c) 2017 by Maris Jensen and Ivo Welch.
@@ -83,7 +83,7 @@ class XBRL(object):
                     'is_research', 'is_sga', 'is_opexpenses', 'is_ebitda', 
                     'is_incometax', 'is_netincome', 'is_opincome', 
                     'cf_operating', 'cf_depreciation', 'cf_investing',
-                    'cf_ppe', 'cf_financing', 'cf_dividends', 'cf_cashchange'])))
+                    'cf_financing', 'cf_dividends', 'cf_cashchange'])))
 
         self.history = '{}/history/{}'.format(self.filepath, q)
         try:
@@ -214,8 +214,8 @@ class XBRL(object):
         bs_assets = self.pull('Assets', 'bs_assets')
 
         bs_cash = None 
-        for key in ['CashAndCashEquivalentsAtCarryingValue', 'CashAndDueFromBanks',
-                    'Cash', 'CashAndCashEquivalentsFairValueDisclosure']:
+        for key in ['CashAndCashEquivalentsAtCarryingValue', 
+                    'CashAndCashEquivalentsFairValueDisclosure', 'Cash']:
             if bs_cash is None:
                 bs_cash = self.pull(key, 'bs_cash')
 
@@ -240,31 +240,6 @@ class XBRL(object):
         bs_longtermdebtcurrent = self.pull('LongTermDebtCurrent', 
                                            'bs_longtermdebtcurrent')
 
-        # bs_longtermdebt = self.pull('LongTermDebt', 'bs_longtermdebt')
-        # if bs_longtermdebt is None:
-        #     tmp = self.pull('LongTermDebtCurrent', None, history=False)
-        #     tmp2 = self.pull('LongTermDebtNoncurrent', None, history=False)
-        #     if tmp is not None and tmp2 is not None:
-        #         bs_longtermdebt = int(tmp) + int(tmp2)
-        #     elif tmp is not None:
-        #         bs_longtermdebt = tmp
-        #     elif tmp2 is not None:
-        #         bs_longtermdebt = tmp2
-        # if bs_longtermdebt is None:
-        #     tmp = self.pull('DebtInstrumentCarryingAmount', None, history=False)
-        #     tmp2 = self.pull('DebtInstrumentUnamortizedDiscountPremiumNetAbstract',
-        #                      None, history=False)
-        #     if tmp is not None and tmp2 is not None:
-        #         bs_longtermdebt = int(tmp) + int(tmp2)
-        #     elif tmp is not None:
-        #         bs_longtermdebt = tmp 
-        #     elif tmp2 is not None:
-        #         bs_longtermdebt = tmp2
-        #     for key in ['LongtermDebtNetAlternative', 'LongTermLoansFromBank',
-        #                 'LongTermDebtAndCapitalLeaseObligations']:
-        #         if bs_longtermdebt is None:
-        #             bs_longtermdebt = self.pull(key, None, history=False)
-
         bs_equity = None
         for key in ['StockholdersEquity', 
                     'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest',
@@ -282,17 +257,14 @@ class XBRL(object):
                 is_sales = self.pull(key, 'is_sales')
 
         is_cogs = None
-        for key in ['CostOfGoodsSold', 'CostOfRevenue', 
-                    'CostOfGoodsAndServicesSold', 'CostOfServices', 
-                    'CostOfGoodsSoldExcludingDepreciationDepletionAndAmortization']:
+        for key in ['CostOfGoodsAndServicesSold', 'CostOfGoodsSold', 'CostOfServices', 
+                    'CostOfGoodsSoldExcludingDepreciationDepletionAndAmortization',
+                    'CostOfRevenue']:
             if is_cogs is None:
                 is_cogs = self.pull(key, 'is_cogs')
 
         is_grossprofit = self.pull('GrossProfit', 'is_grossprofit')
-        if is_grossprofit is None and is_cogs is not None:
-            tmp = self.pull('Revenues', None, history=False)
-            is_grossprofit = int(tmp) - is_cogs
-
+  
         is_research = None
         for key in ['ResearchAndDevelopmentExpense',
                     'ResearchAndDevelopmentExpenseExcludingAcquiredInProcessCost']:
@@ -301,7 +273,6 @@ class XBRL(object):
 
         is_sga = None
         for key in ['SellingGeneralAndAdministrativeExpense', 
-                    'GeneralAndAdministrativeExpense',
                     'SellingGeneralAndAdministrativeExpenses']:
             if is_sga is None:
                 is_sga = self.pull(key, 'is_sga')
@@ -348,10 +319,7 @@ class XBRL(object):
                 cf_operating = self.pull(key, 'cf_operating')
 
         cf_depreciation = None
-        for key in ['DepreciationDepletionAndAmortization',
-                    'DepreciationAndAmortization', 'Depreciation',
-                    'DepreciationAmortizationAndAccretionNet'
-                    'DepreciationNonproduction']:
+        for key in ['Depreciation', 'DepreciationDepletionAndAmortization']:
             if cf_depreciation is None:
                 cf_depreciation = self.pull(key, 'cf_depreciation')
 
@@ -364,7 +332,7 @@ class XBRL(object):
         cf_ppe = None
         for key in ['GainLossOnSaleOfPropertyPlantEquipment']:
             if cf_ppe is None:
-                cf_ppe = self.pull(key, 'cf_ppe')
+                cf_ppe = self.pull(key, 'cf_ppe', history=False)
 
         cf_financing = None
         for key in ['NetCashProvidedByUsedInFinancingActivities',
@@ -373,10 +341,7 @@ class XBRL(object):
                 cf_financing = self.pull(key, 'cf_financing')
 
         cf_dividends = None
-        for key in ['PaymentsOfDividendsCommonStock', 'PaymentsOfDividends', 
-                    'DividendsCommonStockCash', 'DividendsCommonStock',
-                    'DividendsCash', 'PaymentsOfOrdinaryDividends', 'Dividends',
-                    'PaymentsOfCapitalDistribution']:
+        for key in ['PaymentsOfDividends']:
             if cf_dividends is None:
                 cf_dividends = self.pull(key, 'cf_dividends')
 
@@ -408,9 +373,9 @@ class XBRL(object):
                 is_research, is_sga, is_opexpenses, is_ebitda, 
                 is_incometax, is_netincome, is_opincome, 
                 cf_operating, cf_depreciation, cf_investing,
-                cf_ppe, cf_financing, cf_dividends, cf_cashchange])))
+                cf_financing, cf_dividends, cf_cashchange])))
 
-    def pull(self, element, field, history=True):
+    def pull(self, element, field, history=False):
         """Returns most recent, period-appropriate value.
         Writes historical data to financials/data/history/{quarter}.
 

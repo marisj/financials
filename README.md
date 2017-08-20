@@ -16,7 +16,7 @@ following items to financials/data/[quarter]:
 | accession | SEC accession number |
 | name | Company name |
 | bs_assets | Total assets |
-| bs_cash | Cash and cash equivalents |
+| bs_cash | Cash |
 | bs_currentassets | Current assets |
 | bs_ppenet | Net property, plant and equipment |
 | bs_ppegross | Gross property, plant and equipment |
