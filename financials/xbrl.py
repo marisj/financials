@@ -19,6 +19,13 @@
 
     copyright: (c) 2017 by Maris Jensen and Ivo Welch.
     license: BSD, see LICENSE for more details.
+
+I mostly agree.  however, on [1] and [2], I think we should not try to match the 
+compustat dpc.  instead, we should offer users two fields: one "depreciation" 
+and one "depreciation-plus" field, always only from the cash flow statement.  
+the user can decide.  on [3], "DepreciationAmortizationAnd***" should be a 
+fallback into "depreciation-plus" if "depreciation-plus" is not available.
+
 """
 import os
 import datetime
@@ -45,6 +52,7 @@ class XBRL(object):
         self.accession = None
         self.annual = None
         self.tree = None
+        self.entity = None
 
     def get_index(self, url):
         """Returns list of [form type, description, document] for a filing
@@ -197,6 +205,7 @@ class XBRL(object):
         # general
         self.tree = tree
         self.context = defs
+        self.entity = None
         ticker = self.pull('TradingSymbol', None, history=False)
         if ticker is not None:
             ticker = clean_ticker(ticker)
@@ -209,6 +218,14 @@ class XBRL(object):
         else:
             focus = self.datapath.split('/')[-1]
         formdate = self.pull('DocumentPeriodEndDate', None, history=False)
+
+        # check for multiple legal entities
+        check = tree.xpath("//*[local-name()='EntityRegistrantName']")
+        if len(check) > 1:
+            entity = [defs[x.attrib.get('contextRef')] for x in check if 
+                      x.text.lower() == name.lower()]
+            if entity and 'LegalEntityAxis' in entity[0]:
+                self.entity = entity[0]['LegalEntityAxis']
 
         # balance sheet
         bs_assets = self.pull('Assets', 'bs_assets')
@@ -394,10 +411,16 @@ class XBRL(object):
             val = x.text.split(':')[-1].strip()
             if val is not None:
                 context = self.context[x.attrib.get('contextRef')]
-                if 'explicitMember' in context:
-                    continue
-                y.append(dict(self.context[x.attrib.get('contextRef')].items() +
-                              {'tag': element, 'val': val}.items()))
+                if self.entity is None:
+                    if 'explicitMember' in context:
+                        continue
+                    y.append(dict(context.items() + 
+                             {'tag': element, 'val': val}.items()))
+                elif 'LegalEntityAxis' in context:
+                    if context['LegalEntityAxis'] == self.entity:
+                        y.append(dict(context.items() + 
+                                 {'tag': element, 'val': val}.items()))
+
         if not y:
             return None
         if len(y) == 1:
@@ -444,4 +467,26 @@ class XBRL(object):
                     f.write('{}\n'.format(line))
         return z[0]['val']
 
+    def temp_context(self, instance):
+        tree = etree.parse(openurl(instance))
+        defs = defaultdict(dict)
+        for x in tree.iter():
+            if 'id' in x.attrib:
+                for xx in x.iterdescendants():
+                    if xx.text and xx.text.strip() and \
+                                'identifier' not in str(xx.tag):
+                        key = etree.QName(xx.tag).localname.strip()
+                        try:
+                            possible_dt = xx.text.strip()[:10]
+                            val = datetime.datetime.strptime(possible_dt, 
+                                                             '%Y-%m-%d').date()
+                        except ValueError:
+                            val = xx.text.split(':')[-1].strip()
+                        defs[x.attrib['id'].strip()][key] = val
+                        if xx.attrib and xx.attrib.keys() != ['scheme']:
+                            for row in xx.attrib.items():
+                                key = row[1].split(':')[-1].strip()
+                                val = xx.text.split(':')[-1].strip()
+                                defs[x.attrib['id'].strip()][key] = val
+        return tree, defs
 
