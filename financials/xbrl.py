@@ -19,13 +19,6 @@
 
     copyright: (c) 2017 by Maris Jensen and Ivo Welch.
     license: BSD, see LICENSE for more details.
-
-I mostly agree.  however, on [1] and [2], I think we should not try to match the 
-compustat dpc.  instead, we should offer users two fields: one "depreciation" 
-and one "depreciation-plus" field, always only from the cash flow statement.  
-the user can decide.  on [3], "DepreciationAmortizationAnd***" should be a 
-fallback into "depreciation-plus" if "depreciation-plus" is not available.
-
 """
 import os
 import datetime
@@ -231,8 +224,9 @@ class XBRL(object):
         bs_assets = self.pull('Assets', 'bs_assets')
 
         bs_cash = None 
-        for key in ['CashAndCashEquivalentsAtCarryingValue', 
-                    'CashAndCashEquivalentsFairValueDisclosure', 'Cash']:
+        for key in ['CashAndDueFromBanks', 'CashAndCashEquivalents',
+                    'CashAndCashEquivalentsFairValueDisclosure', 'Cash',
+                    'CashAndCashEquivalentsAtCarryingValue']:
             if bs_cash is None:
                 bs_cash = self.pull(key, 'bs_cash')
 
@@ -336,7 +330,9 @@ class XBRL(object):
                 cf_operating = self.pull(key, 'cf_operating')
 
         cf_depreciation = None
-        for key in ['Depreciation', 'DepreciationDepletionAndAmortization']:
+        for key in ['DepreciationAmortizationAndAccretionNet',
+                    'DepreciationAndAmortization', 
+                    'Depreciation', 'DepreciationDepletionAndAmortization']:
             if cf_depreciation is None:
                 cf_depreciation = self.pull(key, 'cf_depreciation')
 
