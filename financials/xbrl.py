@@ -213,19 +213,26 @@ class XBRL(object):
         formdate = self.pull('DocumentPeriodEndDate', None, history=False)
 
         # check for multiple legal entities
-        check = tree.xpath("//*[local-name()='EntityRegistrantName']")
+        check = tree.xpath("//*[local-name()='EntityCentralIndexKey']")
         if len(check) > 1:
             entity = [defs[x.attrib.get('contextRef')] for x in check if 
-                      x.text.lower() == name.lower()]
+                      int(x.text) == int(cik)]
             if entity and 'LegalEntityAxis' in entity[0]:
                 self.entity = entity[0]['LegalEntityAxis']
+
+        # check = tree.xpath("//*[local-name()='EntityRegistrantName']")
+        # if len(check) > 1:
+        #     entity = [defs[x.attrib.get('contextRef')] for x in check if 
+        #               x.text.lower().replace(',', '').replace('.', '') == 
+        #               name.lower().replace(',', '').replace('.', '')]
+        #     if entity and 'LegalEntityAxis' in entity[0]:
+        #         self.entity = entity[0]['LegalEntityAxis']
 
         # balance sheet
         bs_assets = self.pull('Assets', 'bs_assets')
 
         bs_cash = None 
         for key in ['CashAndDueFromBanks', 'CashAndCashEquivalents',
-                    'CashAndCashEquivalentsFairValueDisclosure', 'Cash',
                     'CashAndCashEquivalentsAtCarryingValue']:
             if bs_cash is None:
                 bs_cash = self.pull(key, 'bs_cash')
