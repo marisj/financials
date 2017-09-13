@@ -192,8 +192,7 @@ class XBRL(object):
                         val = x.text.split(':')[-1].strip()
                         crap.append(dict(defs[x.attrib.get('contextRef')].items() +
                                          {'tag': tag, 'val': val}.items()))
-            data = [x for x in crap if x['tag'] != 'explicitMember']
-            return data
+            return crap
 
         # general
         self.tree = tree
@@ -416,7 +415,8 @@ class XBRL(object):
                 context = self.context[x.attrib.get('contextRef')]
                 if self.entity is None:
                     if 'explicitMember' in context:
-                        continue
+                        if context['explicitMember'] != 'UnauditedMember':
+                            continue
                     y.append(dict(context.items() + 
                              {'tag': element, 'val': val}.items()))
                 elif 'LegalEntityAxis' in context:
