@@ -228,7 +228,10 @@ class XBRL(object):
         #         self.entity = entity[0]['LegalEntityAxis']
 
         # balance sheet
-        bs_assets = self.pull('Assets', 'bs_assets')
+        bs_assets = None
+        for key in ['Assets', 'AssetsNet']:
+            if bs_assets is None:
+                bs_assets = self.pull(key, 'bs_assets')
 
         bs_cash = None 
         for key in ['CashAndDueFromBanks', 'CashAndCashEquivalents',
@@ -413,10 +416,17 @@ class XBRL(object):
             val = x.text.split(':')[-1].strip()
             if val is not None:
                 context = self.context[x.attrib.get('contextRef')]
+                axes = [k for k in context.keys() if k.endswith('Axis') and 
+                        k != 'LegalEntityAxis']
+                if axes:
+                    continue
+
                 if self.entity is None:
-                    if 'explicitMember' in context:
-                        if context['explicitMember'] != 'UnauditedMember':
-                            continue
+
+                    # if 'explicitMember' in context:
+                    #     if context['explicitMember'] != 'UnauditedMember':
+                    #         continue
+
                     y.append(dict(context.items() + 
                              {'tag': element, 'val': val}.items()))
                 elif 'LegalEntityAxis' in context:
