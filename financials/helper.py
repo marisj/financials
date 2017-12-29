@@ -104,7 +104,7 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
             while mtries > 1:
                 try:
                     return f(*args, **kwargs)
-                except ExceptionToCheck, e:
+                except ExceptionToCheck as e:
                     time.sleep(mdelay)
                     mtries -= 1
                     mdelay *= backoff

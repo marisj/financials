@@ -7,14 +7,15 @@
     Balance sheet: 
         assets, cash, current assets, net ppe, gross ppe,
         current liabilities, liabilities, long term debt noncurrent, 
-        long term debt current, equity
+        long term debt current, long term debt, equity
 
     Income statement: 
         sales, cogs, gross profit, research, sga, operating expenses,
         income tax, net income, operating income
 
     Cash flow statement:
-        operating, depreciation, investing, financing,
+        operating, depreciation, depreciation and amortization,
+        investing, financing,
         dividends, change in cash/cash equivalents
 
     copyright: (c) 2017 by Maris Jensen and Ivo Welch.
