@@ -109,7 +109,7 @@ class XBRL(object):
         """
         self.recreate_files(qtr)
         c = openurl('{}/full-index/{}/xbrl.idx'.format(self.edgar, qtr))
-        lines = c.read().split('\n')
+        lines = c.read().decode().split('\n')
         c.close()
         for line in lines[10:]:
             try:
@@ -158,8 +158,8 @@ class XBRL(object):
         c = openurl(sgml)
         lines = c.read()
         c.close()
-        acceptance = lines.split('<ACCEPTANCE-DATETIME>')[-1].split('<')[0].strip()
-        zipcode = format_zip(lines.split('<ZIP>')[-1].split('<')[0].strip())
+        acceptance = lines.decode().split('<ACCEPTANCE-DATETIME>')[-1].split('<')[0].strip()
+        zipcode = format_zip(lines.decode().split('<ZIP>')[-1].split('<')[0].strip())
 
         # build context refs dict
         defs = defaultdict(dict)
@@ -465,12 +465,12 @@ class XBRL(object):
                     continue
 
                 if self.entity is None:
-                    y.append(dict(context.items() + 
-                             {'tag': element, 'val': val}.items()))
+                    y.append(dict(list(context.items()) + 
+                             list({'tag': element, 'val': val}.items())))
                 elif 'LegalEntityAxis' in context:
                     if context['LegalEntityAxis'] == self.entity:
-                        y.append(dict(context.items() + 
-                                 {'tag': element, 'val': val}.items()))
+                        y.append(dict(list(context.items()) + 
+                                 list({'tag': element, 'val': val}.items())))
 
         if not y:
             return None
