@@ -8,10 +8,13 @@
     license: BSD, see LICENSE for more details.
 """
 import time
-import urllib2
 from collections import Counter
 from functools import wraps
-
+try:
+    from urllib.request import urlopen
+    from urllib.error import HTTPError, URLError
+except ImportError:
+    from urllib2 import urlopen, URLError, HTTPError
 
 def clean_ticker(dirty):
     """Returns standardized ticker.
@@ -113,11 +116,11 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
     return deco_retry
 
 
-@retry((urllib2.URLError, urllib2.HTTPError), tries=5, delay=3, backoff=2)
+@retry((URLError, HTTPError), tries=5, delay=3, backoff=2)
 def openurl(url):
     """Retries urlopen.
 
     :param url: url to open 
     """
-    return urllib2.urlopen(url)
+    return urlopen(url)
 
