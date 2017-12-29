@@ -1,7 +1,5 @@
-
 ## Financials
-This code parses XBRL financial statements on EDGAR and writes the 
-following items to financials/data/[quarter]:
+This code writes the following financial statement items to financials/data/[quarter]:
 
 | Field | Description |
 | :--- | :--- |
@@ -24,6 +22,7 @@ following items to financials/data/[quarter]:
 | bs_liabilities | Total liabilities |
 | bs_longtermdebtnoncurrent | Long term debt noncurrent |
 | bs_longtermdebtcurrent | Long term debt current |
+| bs_longtermdebt | Long term debt and capital lease obligations |
 | bs_equity | Stockholders' Equity |
 | is_sales | Sales (revenue) net |
 | is_cogs | Cost of goods sold |
@@ -31,12 +30,12 @@ following items to financials/data/[quarter]:
 | is_research | Research and development expense |
 | is_sga | Sales, general and administrative expenses |
 | is_opexpenses | Operating expenses |
-| is_ebitda | EBITDA |
 | is_incometax | Income taxes |
 | is_netincome | Net income |
 | is_opincome | Operating income |
 | cf_operating | Net cash provided by/used in operating activities |
-| cf_depreciation | Depreciation and Amortization (cash flow) |
+| cf_depreciation | Depreciation |
+| cf_depreciationamortization | Depreciation and Amortization |
 | cf_investing | Net cash provided by/used in investing activities |
 | cf_ppe | Gain/loss on sale of property, plant and equipment |
 | cf_financing | Net cash provided by/used in financing activities |

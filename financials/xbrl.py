@@ -11,7 +11,7 @@
 
     Income statement: 
         sales, cogs, gross profit, research, sga, operating expenses,
-        ebitda, income tax, net income, operating income
+        income tax, net income, operating income
 
     Cash flow statement:
         operating, depreciation, investing, financing,
@@ -79,11 +79,12 @@ class XBRL(object):
                     'bs_assets', 'bs_cash', 'bs_currentassets', 'bs_ppenet', 
                     'bs_ppegross', 'bs_currentliabilities', 
                     'bs_liabilities', 'bs_longtermdebtnoncurrent',
-                    'bs_longtermdebtcurrent', 'bs_equity',
+                    'bs_longtermdebtcurrent', 'bs_longtermdebt', 'bs_equity',
                     'is_sales', 'is_cogs', 'is_grossprofit', 
-                    'is_research', 'is_sga', 'is_opexpenses', 'is_ebitda', 
+                    'is_research', 'is_sga', 'is_opexpenses', 
                     'is_incometax', 'is_netincome', 'is_opincome', 
-                    'cf_operating', 'cf_depreciation', 'cf_investing',
+                    'cf_operating', 'cf_depreciation', 
+                    'cf_depreciationamortization', 'cf_investing',
                     'cf_financing', 'cf_dividends', 'cf_cashchange'])))
 
         self.history = '{}/history/{}'.format(self.filepath, q)
@@ -219,14 +220,6 @@ class XBRL(object):
             if entity and 'LegalEntityAxis' in entity[0]:
                 self.entity = entity[0]['LegalEntityAxis']
 
-        # check = tree.xpath("//*[local-name()='EntityRegistrantName']")
-        # if len(check) > 1:
-        #     entity = [defs[x.attrib.get('contextRef')] for x in check if 
-        #               x.text.lower().replace(',', '').replace('.', '') == 
-        #               name.lower().replace(',', '').replace('.', '')]
-        #     if entity and 'LegalEntityAxis' in entity[0]:
-        #         self.entity = entity[0]['LegalEntityAxis']
-
         # balance sheet
         bs_assets = None
         for key in ['Assets', 'AssetsNet']:
@@ -256,9 +249,63 @@ class XBRL(object):
 
         bs_longtermdebtnoncurrent = self.pull('LongTermDebtNoncurrent', 
                                               'bs_longtermdebtnoncurrent')
+        if bs_longtermdebtnoncurrent is None:
+
+            # build long term notes and loans
+            bs_longtermdebtnoncurrent = self.pull('LongTermNotesAndLoans', None, 
+                                                  history=False)
+            if bs_longtermdebtnoncurrent is None:
+                notes_payable = self.pull('LongTermNotesPayable', None, 
+                                          history=False)
+                if notes_payable is None:
+                    notes_payable = 0
+                    for key in ['MediumtermNotesNoncurrent', 
+                                'JuniorSubordinatedLongTermNotes',
+                                'SeniorLongTermNotes',
+                                'ConvertibleLongTermNotesPayable',
+                                'NotesPayableToBankNoncurrent', 
+                                'OtherLongTermNotesPayable']:
+                        tmp = self.pull(key, None, history=False)
+                        if tmp is not None:
+                            notes_payable += int(tmp)
+
+                loans_payable = self.pull('LongTermLoansPayable', None, 
+                                          history=False)
+                if loans_payable is None:
+                    loans_payable = 0
+                    for key in ['LongTermLoansFromBank',
+                                'OtherLoansPayableLongTerm']:
+                        tmp = self.pull(key, None, history=False)
+                        if tmp is not None:
+                            loans_payable += int(tmp)
+
+                bs_longtermdebtnoncurrent = int(notes_payable) + int(loans_payable)
+            else:
+                bs_longtermdebtnoncurrent = int(bs_longtermdebtnoncurrent)
+
+            # add other elements
+            for key in ['LongTermLineOfCredit', 'CommercialPaperNoncurrent',
+                        'ConstructionLoanNoncurrent', 'SecuredLongTermDebt',
+                        'SubordinatedLongTermDebt', 'UnsecuredLongTermDebt', 
+                        'ConvertibleDebtNoncurrent', 
+                        'ConvertibleSubordinatedDebtNoncurrent', 
+                        'LongTermTransitionBond', 'LongTermPollutionControlBond', 
+                        'JuniorSubordinatedDebentureOwedToUnconsolidatedSubsidiaryTrustNoncurrent',
+                        'SpecialAssessmentBondNoncurrent',
+                        'LongtermFederalHomeLoanBankAdvancesNoncurrent',
+                        'OtherLongTermDebtNoncurrent']:
+                tmp = self.pull(key, None, history=False)
+                if tmp is not None:
+                    bs_longtermdebtnoncurrent += int(tmp)
 
         bs_longtermdebtcurrent = self.pull('LongTermDebtCurrent', 
                                            'bs_longtermdebtcurrent')
+
+        bs_longtermdebt = None
+        for key in ['LongTermDebtAndCapitalLeaseObligations', 'LongTermDebt',
+                    'LongTermDebtNetAlternative']:
+            if bs_longtermdebt is None:
+                bs_longtermdebt = self.pull(key, 'bs_longtermdebt')
 
         bs_equity = None
         for key in ['StockholdersEquity', 
@@ -303,15 +350,6 @@ class XBRL(object):
             if is_opexpenses is None:
                 is_opexpenses = self.pull(key, 'is_opexpenses')
 
-        is_ebitda = None
-        if is_sales and is_cogs and is_sga:
-            is_ebitda = int(is_sales) - int(is_cogs) - int(is_sga)
-        if is_ebitda is None and is_grossprofit and is_opexpenses:
-            is_ebitda = int(is_grossprofit) - int(is_opexpenses)
-            tmp = self.pull('DepreciationAndAmortization', None, history=False)
-            if tmp is not None:
-                is_ebitda += int(tmp)
-
         is_incometax = self.pull('IncomeTaxExpenseBenefit', 'is_incometax')
         if is_incometax is None:
             is_incometax = self.pull('IncomeTaxExpenseBenefitContinuingOperations',
@@ -338,12 +376,14 @@ class XBRL(object):
             if cf_operating is None:
                 cf_operating = self.pull(key, 'cf_operating')
 
-        cf_depreciation = None
+        cf_depreciation = self.pull('Depreciation', 'cf_depreciation')
+
+        cf_depreciationamortization = None
         for key in ['DepreciationAmortizationAndAccretionNet',
                     'DepreciationAndAmortization', 
-                    'Depreciation', 'DepreciationDepletionAndAmortization']:
-            if cf_depreciation is None:
-                cf_depreciation = self.pull(key, 'cf_depreciation')
+                    'DepreciationDepletionAndAmortization']:
+            if cf_depreciationamortization is None:
+                cf_depreciationamortization = self.pull(key, 'cf_depreciationamortization')
 
         cf_investing = None
         for key in ['NetCashProvidedByUsedInInvestingActivities', 
@@ -391,10 +431,12 @@ class XBRL(object):
                 bs_assets, bs_cash, bs_currentassets, bs_ppenet, 
                 bs_ppegross, bs_currentliabilities, bs_liabilities, 
                 bs_longtermdebtnoncurrent, bs_longtermdebtcurrent, 
-                bs_equity, is_sales, is_cogs, is_grossprofit, 
-                is_research, is_sga, is_opexpenses, is_ebitda, 
+                bs_longtermdebt, bs_equity, 
+                is_sales, is_cogs, is_grossprofit, 
+                is_research, is_sga, is_opexpenses,
                 is_incometax, is_netincome, is_opincome, 
-                cf_operating, cf_depreciation, cf_investing,
+                cf_operating, cf_depreciation, 
+                cf_depreciationamortization, cf_investing,
                 cf_financing, cf_dividends, cf_cashchange])))
 
     def pull(self, element, field, history=False):
@@ -422,11 +464,6 @@ class XBRL(object):
                     continue
 
                 if self.entity is None:
-
-                    # if 'explicitMember' in context:
-                    #     if context['explicitMember'] != 'UnauditedMember':
-                    #         continue
-
                     y.append(dict(context.items() + 
                              {'tag': element, 'val': val}.items()))
                 elif 'LegalEntityAxis' in context:
