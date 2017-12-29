@@ -27,10 +27,11 @@ rm -f $outputpath
 echo "focus|ticker|cik|zip|form|formdate|filedate|acceptance|accession|\
 name|bs_assets|bs_cash|bs_currentassets|bs_ppenet|bs_ppegross|\
 bs_currentliabilities|bs_liabilities|bs_longtermdebtnoncurrent|\
-bs_longtermdebtcurrent|bs_equity|is_sales|is_cogs|\
-is_grossprofit|is_research|is_sga|is_opexpenses|is_ebitda|\
+bs_longtermdebtcurrent|bs_longtermdebt|bs_equity|is_sales|is_cogs|\
+is_grossprofit|is_research|is_sga|is_opexpenses|\
 is_incometax|is_netincome|is_opincome|cf_operating|cf_depreciation|\
-cf_investing|cf_financing|cf_dividends|cf_cashchange" > $outputpath
+cf_depreciationamortization|cf_investing|cf_financing|cf_dividends|\
+cf_cashchange" > $outputpath
 
 for infile in ${datapath}/${year}*Q*; do
     awk -F\| '(index($5, "10-K") != 0)' $infile >> $outputpath
