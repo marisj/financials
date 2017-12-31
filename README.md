@@ -44,7 +44,7 @@ This code writes the following financial statement items to financials/data/{qua
 
 
 ## Usage
-To pull data for a specific quarter:
+To pull data from a specific quarter's filings (10-Qs and 10-Ks):
 ```
 from financials.xbrl import XBRL
 
@@ -55,12 +55,13 @@ or
 bash pull_quarter.sh 2009/QTR1
 ```
 
-To pull data since 2009:
+To pull data from 2009 through 2017:
 ```
 from financials.xbrl import XBRL
 
-XBRL().add_history(start=2009)
+XBRL().add_history(start=2009, end=2017)
 ```
+
 
 ## Dependencies
 lxml

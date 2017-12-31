@@ -75,8 +75,7 @@ def clean_ticker(dirty):
 def format_zip(field):
     """Return str version of 5 digit zip. Examples:
 
-        format_zip('91711-4320') >>> '91711'
-        format_zip(917114320) >>> '91711'
+        format_zip('08544-4320') >>> '08544'
         format_zip('085444320') >>> '08544'
         format_zip(85444320) >>> '08544'
         format_zip(851) >>> '00851'
@@ -89,7 +88,7 @@ def format_zip(field):
     if len(field) <= 5:
         return field.zfill(5) if field.isdigit() else None
     elif len(field) <= 9:
-        field = field[:5]
+        field = field.zfill(9)[:5]
         return field if field.isdigit() else None
     return None
  
