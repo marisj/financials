@@ -35,10 +35,9 @@ class XBRL(object):
 
     def __init__(self):
         self.edgar = 'https://www.sec.gov/Archives/edgar'
-        # self.forms = [
-        #     '10-K', '10-K/A', '10-KT', '10-KT/A',
-        #     '10-Q', '10-Q/A', '10-QT', '10-QT/A']
-        self.forms = ['10-K', '10-K/A', '10-KT', '10-KT/A']
+        self.forms = [
+            '10-K', '10-K/A', '10-KT', '10-KT/A',
+            '10-Q', '10-Q/A', '10-QT', '10-QT/A']
         self.context = None
         self.filepath = os.path.join(os.path.realpath('.'), 'data')
         self.datapath = None
@@ -120,6 +119,19 @@ class XBRL(object):
             except ValueError:
                 with open(os.path.join(os.path.realpath('.'), 'check.txt'), 'a') as f:
                     f.write('{}\n'.format(line))
+
+    def add_history(self, start=2009, end=None):
+        """Pulls historical data.
+
+        :param start: YYYY
+        :param end: YYYY
+        """
+        end = datetime.datetime.now().year if end is None else end
+        for year in range(start, end+1):
+            for qtr in range(1, 5):
+                q = '{}/QTR{}'.format(year, qtr)
+                self.add_quarter(q)
+                print('{} added'.format(q))
 
     def parse(self, cik, name, form, date, filing, return_all=False):
         """Parses XBRL instance doc. Writes data to financials/data/{quarter}.
@@ -440,7 +452,7 @@ class XBRL(object):
                 cf_depreciationamortization, cf_investing,
                 cf_financing, cf_dividends, cf_cashchange])))
 
-    def pull(self, element, field, history=False):
+    def pull(self, element, field, history=True):
         """Returns most recent, period-appropriate value.
         Writes historical data to financials/data/history/{quarter}.
 

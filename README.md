@@ -1,5 +1,5 @@
 ## Financials
-This code writes the following financial statement items to financials/data/[quarter]:
+This code writes the following financial statement items to financials/data/{quarter}:
 
 | Field | Description |
 | :--- | :--- |
@@ -44,6 +44,7 @@ This code writes the following financial statement items to financials/data/[qua
 
 
 ## Usage
+To pull data for a specific quarter:
 ```
 from financials.xbrl import XBRL
 
@@ -52,6 +53,13 @@ XBRL().add_quarter('2009/QTR1')
 or
 ```
 bash pull_quarter.sh 2009/QTR1
+```
+
+To pull data since 2009:
+```
+from financials.xbrl import XBRL
+
+XBRL().add_history(start=2009)
 ```
 
 ## Dependencies
