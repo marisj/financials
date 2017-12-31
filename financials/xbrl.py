@@ -24,6 +24,10 @@
 import os
 import datetime
 from collections import defaultdict
+try:
+    from http.client import IncompleteRead 
+except ImportError:
+    from httplib import IncompleteRead
 
 import lxml.html
 from lxml import etree
@@ -164,6 +168,8 @@ class XBRL(object):
         except etree.XMLSyntaxError:
             tree = etree.parse(openurl(instance),
                                parser=etree.XMLParser(recover=True))
+        except IncompleteRead:
+            tree = etree.parse(openurl(instance))
 
         # pull acceptance datetime and zip
         sgml = index.replace('-index.htm', '.hdr.sgml')
