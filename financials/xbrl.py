@@ -22,6 +22,7 @@
     license: BSD, see LICENSE for more details.
 """
 import os
+import time
 import datetime
 from collections import defaultdict
 try:
@@ -169,6 +170,9 @@ class XBRL(object):
             tree = etree.parse(openurl(instance),
                                parser=etree.XMLParser(recover=True))
         except IncompleteRead:
+            tree = etree.parse(openurl(instance))
+        except ConnectionResetError:
+            time.sleep(500)
             tree = etree.parse(openurl(instance))
 
         # pull acceptance datetime and zip
